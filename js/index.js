@@ -1,13 +1,12 @@
-
-// store results here
-var employeeDirectory;
-
 // search feature variables 
 var searchInput = document.getElementById('search-input');
-var searchButton = document.getElementById('search-submit');
+
+
+
 
 document.addEventListener('DOMContentLoaded', function () {
-    var randomUser = 'https://randomuser.me/api/?page=3&nat=us&results=12&exc=gender,login,registered,id';
+    
+    var randomUser = 'https://randomuser.me/api/?page=1&nat=us&results=12&exc=gender,login,registered,id';
 
     fetch(randomUser)
         .then(function (response) {
@@ -35,9 +34,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 galleryContainer.innerHTML = 'No employees found.';
             }
 
-            console.log(employeeDirectory);
             // Search form event
-            searchButton.addEventListener('click', function (event) {
+            searchInput.addEventListener('input', function (event) {
                 event.preventDefault(); // Prevent the form submissions
                 var searchTerm = searchInput.value.trim();
                 performSearch(searchTerm, employeeDirectory);
@@ -45,10 +43,11 @@ document.addEventListener('DOMContentLoaded', function () {
               
             
 
-            // open the card that was clicked on  
+            // open the modal for the card that was clicked  
             $('#gallery').click(function (e) {
                 const target = $(e.target)
-                console.log(target);
+
+                // get index of clicked element 
                 if (!target.hasClass('gallery')) {
                     if (target.hasClass('card')) {
                         select = target.index();
@@ -60,7 +59,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         select = target.parent().parent().index();
                     }
 
-                    // now i can return the values of the selected elements so i need attr() function
+                    // populate html with api data 
                     $('img.modal-img').attr('src', employeeDirectory[select].picture.large);
                     userName.textContent = employeeDirectory[select].name.first + ' ' + employeeDirectory[select].name.last;
                     userMail.textContent = employeeDirectory[select].email;

@@ -179,7 +179,7 @@ header h1 {
     border-color: rgba(200, 200, 200, 0.2);
 }
 
-.modal-btn-container {
+.pagination-container {
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
@@ -194,7 +194,7 @@ header h1 {
 }
 
 
-.modal-btn-container .btn {
+.pagination-container .btn {
     display: inline-block;
     cursor: pointer;
     font-size: 0.85em;
