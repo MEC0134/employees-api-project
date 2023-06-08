@@ -1,11 +1,39 @@
 // search feature variables 
-var searchInput = document.getElementById('search-input');
+const searchInput = document.getElementById('search-input');
 var employeeDirectory;
 
+const cardsPerPage = 12;
+let currPage = 1;
+
+
+// Attach event listener for opening the modal
+function attachModalEventListener(employees) {
+    var cards = document.querySelectorAll('.card');
+    cards.forEach(function (card, index) {
+        card.addEventListener('click', function () {
+            var currentPageEmployees = employees ? employees : employeeDirectory;
+            var employeeIndex = (currPage - 1) * cardsPerPage + index;
+            var employee = currentPageEmployees[employeeIndex];
+
+            // populate html with api data
+            var modalImg = document.querySelector('img.modal-img');
+            modalImg.src = employee.picture.large;
+            userName.textContent = employee.name.first + ' ' + employee.name.last;
+            userMail.textContent = employee.email;
+            userCity.textContent = employee.location.city;
+            userContact.textContent = employee.cell;
+            userAddress.textContent = employee.location.street.number + ', ' + employee.location.state + ' ' + employee.location.postcode;
+            userDob.textContent = 'Birthday: ' + employee.dob.date.slice(0, 10);
+
+            var modalContainer = document.querySelector('.modal-container');
+            modalContainer.style.display = 'block';
+        });
+    });
+}
 
 document.addEventListener('DOMContentLoaded', function () {
 
-    var randomUser = 'https://randomuser.me/api/?page=5&nat=us&results=12&exc=gender,login,registered,id';
+    var randomUser = 'https://randomuser.me/api/?page=5&nat=us&results=60&seed=abc&exc=gender,login,registered,id';
 
     fetch(randomUser)
         .then(function (response) {
@@ -13,30 +41,34 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .then(function (getResponse) {
             employeeDirectory = getResponse.results;
-            var galleryContainer = document.getElementById('gallery');
 
-            if (employeeDirectory && employeeDirectory.length > 0) {
-                employeeDirectory.forEach(function (employee, index) {
-                    var dirHTML = '<div class="card" data-id="' + index + '">';
-                    dirHTML += '<div class="card-img-container">';
-                    dirHTML += '<img class="card-img" src="' + employee.picture.large + '">';
-                    dirHTML += '</div>';
-                    dirHTML += '<div class="card-info-container">';
-                    dirHTML += '<h3 id="name" class="card-name cap">' + employee.name.first + ' ' + employee.name.last + '</h3>';
-                    dirHTML += '<p class="card-text">' + employee.email + '</p>';
-                    dirHTML += '<p class="card-text cap">' + employee.location.city + ', ' + employee.location.state + '</p>';
-                    dirHTML += '</div>';
-                    dirHTML += '</div>';
-                    galleryContainer.innerHTML += dirHTML;
+            function renderEmployeeDirectory(employeeDirectory, startIndex, endIndex) {
+                const galleryContainer = document.getElementById("gallery"); // Replace "gallery" with the actual ID of the gallery container element
 
-                    // Reattach the event listener for opening the modal after updating the gallery
-                    attachModalEventListener();
-                });
-            } else {
-                galleryContainer.innerHTML = 'No employees found.';
+                galleryContainer.innerHTML = ''; // Clear the gallery container before rendering new cards
+
+                if (employeeDirectory && employeeDirectory.length > 0) {
+                    for (var i = startIndex; i < endIndex; i++) {
+                        var employee = employeeDirectory[i];
+                        var dirHTML = '<div class="card" data-id="' + i + '">';
+                        dirHTML += '<div class="card-img-container">';
+                        dirHTML += '<img class="card-img" src="' + employee.picture.large + '">';
+                        dirHTML += '</div>';
+                        dirHTML += '<div class="card-info-container">';
+                        dirHTML += '<h3 id="name" class="card-name cap">' + employee.name.first + ' ' + employee.name.last + '</h3>';
+                        dirHTML += '<p class="card-text">' + employee.email + '</p>';
+                        dirHTML += '<p class="card-text cap">' + employee.location.city + ', ' + employee.location.state + '</p>';
+                        dirHTML += '</div>';
+                        dirHTML += '</div>';
+                        galleryContainer.innerHTML += dirHTML;
+                    }
+
+                } else {
+                    galleryContainer.innerHTML = '<h1 style="color: white;">No employees found.</h1>';
+                }
+                // Reattach the event listener for opening the modal after updating the gallery
+                attachModalEventListener();
             }
-
-
 
 
             // Search form event
@@ -50,7 +82,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // Search function
             function performSearch(searchTerm) {
                 // Clear the gallery container before populating with search results
-                var galleryContainer = document.getElementById('gallery');
+                const galleryContainer = document.getElementById('gallery');
                 galleryContainer.innerHTML = '';
 
                 // Filter the employee directory based on the search term
@@ -73,47 +105,70 @@ document.addEventListener('DOMContentLoaded', function () {
                         dirHTML += '</div>';
                         dirHTML += '</div>';
                         galleryContainer.innerHTML += dirHTML;
-
-                        attachModalEventListener();
                     });
 
                     attachModalEventListener(filteredResults);
                 } else {
-                    galleryContainer.innerHTML = 'No employees found.';
+                    galleryContainer.innerHTML = '<h1 style="color: white;">No employees found.</h1>';
                 }
             }
 
+            function showPage(pageNumber) {
+                // Calculate start and end index of contacts for the given page number
+                const startIndex = (pageNumber - 1) * cardsPerPage;
+                const endIndex = startIndex + cardsPerPage;
 
-            // Attach event listener for opening the modal
-            function attachModalEventListener(employees) {
-                var cards = document.querySelectorAll('.card');
-                cards.forEach(function (card, index) {
-                    card.addEventListener('click', function () {
-                        var employee = employees ? employees[index] : employeeDirectory[index];
 
-                        // populate html with api data
-                        var modalImg = document.querySelector('img.modal-img');
-                        modalImg.src = employee.picture.large;
-                        userName.textContent = employee.name.first + ' ' + employee.name.last;
-                        userMail.textContent = employee.email;
-                        userCity.textContent = employee.location.city;
-                        userContact.textContent = employee.cell;
-                        userAddress.textContent = employee.location.street.number + ', ' + employee.location.state + ' ' + employee.location.postcode;
-                        userDob.textContent = 'Birthday: ' + employee.dob.date.slice(0, 10);
-
-                        var modalContainer = document.querySelector('.modal-container');
-                        modalContainer.style.display = 'block';
-                    });
-                });
+                // Display the contacts for the current page
+                renderEmployeeDirectory(employeeDirectory, startIndex, endIndex);
             }
+
+            function createPaginationButtons() {
+                const numOfPages = Math.ceil(employeeDirectory.length / cardsPerPage);
+
+                // get pagination container 
+                const paginationContainer = document.querySelector('.pagination-container');
+
+                paginationContainer.innerHTML = '';
+
+                // Create pagination buttons 
+                for (let i = 1; i <= numOfPages; i++) {
+
+                    const pagBtn = document.createElement('a');
+                    pagBtn.href = "#";
+                    pagBtn.classList.add('pagination-btns');
+                    pagBtn.textContent = i;
+
+
+                    // add event listener to each btn 
+                    pagBtn.addEventListener('click', () => {
+                        currPage = i;
+                        showPage(currPage);
+
+                        // remove active class 
+                        const pagBtns = document.querySelectorAll('.pagination-btns');
+                        pagBtns.forEach(btn => btn.classList.remove('active'));
+
+                        // add active class 
+                        pagBtn.classList.add('active');
+                    })
+                    paginationContainer.appendChild(pagBtn);
+                }
+                showPage(currPage);
+
+                // add active class to 1st btn 
+                const firstButton = document.querySelector('.pagination-btns');
+                if (firstButton) {
+                    firstButton.classList.add('active');
+                }
+            }
+
+            createPaginationButtons();
         })
         .catch(function (error) {
             console.log('Error:', error);
         });
 });
-
-
-
 
 
 
@@ -123,7 +178,7 @@ modal_container.className = 'modal-container';
 document.body.append(modal_container);
 
 
-//modal
+// Modal Creation
 const modal = document.createElement('div');
 modal.className = 'modal';
 modal_container.append(modal);
